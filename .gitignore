@@ -23,3 +23,6 @@ venv
 .fleet
 .idea
 .vscode
+
+# Benchmark outputs
+tests/test_data/json_batches/
