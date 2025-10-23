@@ -172,7 +172,8 @@ def benchmark_with_rating(
                 elapsed_str_display = format_elapsed(elapsed, sep=':')
 
                 base_name = os.path.splitext(file)[0]
-                json_filename = f"{base_name}__{model['name']}__{format_elapsed(elapsed, sep='-')}.json"
+                elapsed_fmt = format_elapsed(elapsed, sep='-')
+                json_filename = f"{base_name}__{model['name']}__{elapsed_fmt}.json"
                 json_path = os.path.join(out_dir, json_filename)
 
                 with open(json_path, 'w', encoding='utf-8') as f:
