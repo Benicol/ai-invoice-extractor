@@ -1,50 +1,56 @@
 #!/usr/bin/env python3
-"""Petit runner pour démarrer la boucle de notation avec arguments CLI.
+"""Compatibility wrapper for old run_rating.py script.
 
-Usage examples:
-  python tests/run_rating.py --start-file invoice-test-5.pdf
-  python tests/run_rating.py --start-index 5
+DEPRECATED: This script has been replaced by the consolidated benchmarks package.
 
-Ce script positionne des variables d'environnement utilisées par
-`test_evaluate_models_capabilities_threaded` puis appelle la fonction.
+Old usage:
+    python tests/run_rating.py --start-file invoice-test-5.pdf
+    python tests/run_rating.py --start-index 5
+
+New usage:
+    python -m benchmarks.cli threaded --start-file invoice-test-5.pdf
+    python -m benchmarks.cli threaded --start-index 5
+
+For more information, see benchmarks/README.md
 """
-import os
+
 import sys
-import argparse
-import importlib.util
+import warnings
 
-from pathlib import Path
+# Show deprecation warning
+warnings.warn(
+    "tests/run_rating.py is deprecated. Use 'python -m benchmarks.cli threaded' instead. "
+    "See benchmarks/README.md for details.",
+    DeprecationWarning,
+    stacklevel=2
+)
 
-TEST_MODULE_PATH = str(Path(__file__).resolve().parent / 'test_ai_requester_lot.py')
-
-
-def load_test_module(path):
-    spec = importlib.util.spec_from_file_location('test_ai_requester_lot', path)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
-
-
-def main(argv=None):
-    argv = argv if argv is not None else sys.argv[1:]
-    parser = argparse.ArgumentParser(description="Runner interactif pour la notation AI")
-    parser.add_argument("--start-file", help="Nom de fichier PDF de départ, ex: invoice-test-5.pdf")
-    parser.add_argument("--start-index", type=int, help="Index 1-based du fichier de départ")
-    args = parser.parse_args(argv)
-
+# Forward to new CLI
+try:
+    from benchmarks.cli import main as benchmark_main
+    
+    # Convert old args to new format
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--start-file", help="Start from specific PDF file")
+    parser.add_argument("--start-index", type=int, help="Start from specific 1-based index")
+    args = parser.parse_args()
+    
+    # Build new args
+    new_args = ['threaded']
     if args.start_file:
-        os.environ['AI_RATING_START_FILE'] = args.start_file
+        new_args.extend(['--start-file', args.start_file])
     if args.start_index:
-        os.environ['AI_RATING_START_INDEX'] = str(args.start_index)
-
-    # Load the test module by path so this script can be run directly
-    mod = load_test_module(TEST_MODULE_PATH)
-    # Call the interactive runner function
-    if hasattr(mod, 'test_evaluate_models_capabilities_threaded'):
-        mod.test_evaluate_models_capabilities_threaded()
-    else:
-        print('La fonction test_evaluate_models_capabilities_threaded() est introuvable dans le module de test.')
-
-
-if __name__ == '__main__':
-    main()
+        new_args.extend(['--start-index', str(args.start_index)])
+    
+    print("Note: This script is deprecated. Use 'python -m benchmarks.cli threaded' instead.")
+    print(f"Forwarding to: python -m benchmarks.cli {' '.join(new_args)}\n")
+    
+    sys.exit(benchmark_main(new_args))
+    
+except ImportError as e:
+    print("ERROR: Could not import benchmarks package.", file=sys.stderr)
+    print(f"Error: {e}", file=sys.stderr)
+    print("\nPlease use the new benchmark CLI:", file=sys.stderr)
+    print("  python -m benchmarks.cli threaded --help", file=sys.stderr)
+    sys.exit(1)
