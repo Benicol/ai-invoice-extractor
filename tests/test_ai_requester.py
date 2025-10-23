@@ -8,4 +8,8 @@ def ticket():
 
 def test_ai_requester(ticket):
     requester = AiRequester(ticket)
-    print(requester.request())
+    response = requester.request()
+    print(response)
+    response.deserialize()
+    print(response._total_excluding_vat)
+    print("type of total_excluding_vat:", type(response._total_excluding_vat))

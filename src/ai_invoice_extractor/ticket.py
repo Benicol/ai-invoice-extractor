@@ -11,7 +11,7 @@ class Ticket:
         if not os.path.exists(pdf_path):
             raise FileNotFoundError(f"File {pdf_path} does not exist")
         if pdfinfo_from_path(pdf_path)['Pages'] > 1:
-            raise Exception("PDF has more than one page")
+            raise ValueError("PDF has more than one page")
         self._pdf_path = pdf_path
 
 
@@ -22,15 +22,17 @@ class Ticket:
     @pdf_path.setter
     def pdf_path(self, value):
         if not os.path.exists(value):
-            raise FileNotFoundError(f"File {value} does not exist")
+                        raise FileNotFoundError(f"File {value} does not exist")
+        if pdfinfo_from_path(value)['Pages'] > 1:
+            raise Exception("PDF has more than one page")
         self._pdf_path = value
 
     def get_png_data(self) -> bytes:
         try:
-            list_converted = convert_from_path(self._pdf_path)
+            pdf_images = convert_from_path(self._pdf_path)
         except PDFInfoNotInstalledError as e:
-            raise Exception("poppler is not installed and iadd it to the PATH.")
+            raise PDFInfoNotInstalledError("poppler is not installed and add it to the PATH.") from e
         buffer = io.BytesIO()
-        list_converted[0].save(buffer, 'PNG')
+        pdf_images[0].save(buffer, 'PNG')
         return buffer.getvalue()
 

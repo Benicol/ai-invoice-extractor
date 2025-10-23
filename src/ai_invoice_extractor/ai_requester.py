@@ -5,10 +5,12 @@ from .prompts import invoice_prompt
 
 class AiRequester:
     _ticket: Ticket
+    _model: str
     _answer: str
 
-    def __init__(self, ticket: Ticket):
+    def __init__(self, ticket: Ticket, model: str = "qwen2.5vl:7b"):
         self._ticket = ticket
+        self._model = model
 
     @property
     def ticket(self) -> Ticket:
@@ -23,7 +25,7 @@ class AiRequester:
         prompt = f"{invoice_prompt}"
 
         response: ChatResponse = chat(
-            model="qwen2.5vl",
+            model=self._model,
             messages=[
                 {
                     "role": "user",
